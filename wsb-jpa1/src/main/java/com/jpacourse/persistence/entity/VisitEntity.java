@@ -1,13 +1,9 @@
 package com.jpacourse.persistence.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "VISIT")
@@ -21,6 +17,21 @@ public class VisitEntity {
 
 	@Column(nullable = false)
 	private LocalDateTime time;
+
+	//relacja jednokierunkowa: 1 do wielu od rodzica
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@JoinColumn(name = "VISIT_ID")
+	private List<MedicalTreatmentEntity> medicalThreatmentsEntityList;
+
+	//relacja wielokierunkowa: wielu do 1 od dziecka
+	@ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+	@JoinColumn(name = "DOCTOR_ID", nullable = false)
+	private DoctorEntity doctorEntity;
+
+	//relacja wielokierunkowa: wielu do 1 od dziecka
+	@ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+	@JoinColumn(name = "PATIENT_ID", nullable = false)
+	private PatientEntity patientEntity;
 
 	public Long getId() {
 		return id;

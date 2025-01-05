@@ -32,7 +32,7 @@ public class DoctorEntity {
 	private Specialization specialization;
 
 	//relacja dwukierunkowa: 1 do wielu od rodzica
-	@OneToMany(mappedBy = "doctor", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "doctorEntity", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
 	private List<VisitEntity> visitEntityList;
 
 	//relacja jednokierunkowa: 1 do 1 od strony rodzica

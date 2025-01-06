@@ -30,6 +30,9 @@ public class PatientEntity {
 	@Column(nullable = false)
 	private LocalDate dateOfBirth;
 
+	@Column(nullable = true)
+	private Boolean isAdult;
+
 	// relacja jednokierunkowa: 1 do 1 od rodzica
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	@JoinColumn(name = "ADDRESS_ID", nullable = false)
@@ -93,6 +96,36 @@ public class PatientEntity {
 
 	public void setDateOfBirth(LocalDate dateOfBirth) {
 		this.dateOfBirth = dateOfBirth;
+	}
+
+	public AddressEntity getAddressEntity()
+	{
+		return addressEntity;
+	}
+
+	public List<VisitEntity> getVisitEntityList()
+	{
+		return visitEntityList;
+	}
+
+	public Boolean getIsAdult()
+	{
+		return isAdult;
+	}
+
+	public void setAddressEntity(AddressEntity address)
+	{
+		this.addressEntity = address;
+	}
+
+	public void setIsAdult(Boolean isAdult)
+	{
+		this.isAdult = isAdult;
+	}
+
+	public void setVisitEntityList(List<VisitEntity> list)
+	{
+		this.visitEntityList = list;
 	}
 
 }

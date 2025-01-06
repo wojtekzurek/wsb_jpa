@@ -39,6 +39,7 @@ public class PatientDaoImpl extends AbstractDao<PatientEntity, Long> implements 
         visit.setDoctorEntity(doctorEntity);
         visit.setTime(time);
         visit.setDescription(description);
+        entityManager.persist(visit);
 
         patientEntity.getVisitEntityList().add(visit);
         entityManager.merge(patientEntity);

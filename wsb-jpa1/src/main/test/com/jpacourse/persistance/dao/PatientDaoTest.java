@@ -146,9 +146,10 @@ public class PatientDaoTest {
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("TEST ERROR"));
 
-        //assertThat(testVisit.getTime()).isEqualTo(testDate);
+        assertThat(testVisit.getTime()).isEqualTo(testDate);
         assertThat(testVisit.getDescription()).isEqualTo("DESCRIPTION");
-
+        assertThat(testVisit.getPatientEntity()).isEqualTo(patientEntity);
+        assertThat(testVisit.getDoctorEntity()).isEqualTo(doctorEntity);
     }
 
 }

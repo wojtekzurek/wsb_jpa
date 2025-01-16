@@ -14,13 +14,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
-import javax.persistence.EntityManager;
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -34,6 +37,9 @@ public class PatientDaoTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private EntityManagerFactory factory;
 
     @Transactional
     @Test
@@ -150,6 +156,101 @@ public class PatientDaoTest {
         assertThat(testVisit.getDescription()).isEqualTo("DESCRIPTION");
         assertThat(testVisit.getPatientEntity()).isEqualTo(patientEntity);
         assertThat(testVisit.getDoctorEntity()).isEqualTo(doctorEntity);
+    }
+
+    @Transactional
+    @Test
+    public void testShouldGetPatientById()
+    {
+        //given
+        String lastName = "Mickiewicz";
+
+        //when
+        List<PatientEntity> patientList = patientDao.getPatientByLastName(lastName);
+
+        //then
+        assertThat(patientList.size()).isEqualTo(1);
+        assertThat(patientList.stream().sorted(Comparator.comparing(PatientEntity::getFirstName)).collect(Collectors.toList())
+                .get(0).getFirstName()).isEqualTo("Adam");
+        assertThat(patientList.stream().sorted(Comparator.comparing(PatientEntity::getId)).collect(Collectors.toList())
+                .get(0).getId()).isEqualTo(3L);
+    }
+
+    @Transactional
+    @Test
+    public void testShouldGetPatientByVisitsCount()
+    {
+        //given
+        Long visits = 1L;
+        Long targetPatientId = 3L;
+
+        //when
+        List<PatientEntity> patientList = patientDao.getPatientByVisitsMoreThan(visits);
+
+        //then
+        assertThat(patientList.size()).isEqualTo(1);
+        assertThat(patientList.get(0).getId()).isEqualTo(targetPatientId);
+    }
+
+    @Transactional
+    @Test
+    public void testShouldGetPatientByIsAdult()
+    {
+        //given
+        int adultPatientsInBase = 2;
+        int notAdultPatientsInBase = 1;
+
+        //when
+        List<PatientEntity> adultPatientList = patientDao.getPatientByIsAdult(true);
+        List<PatientEntity> notAdultPatientList = patientDao.getPatientByIsAdult(false);
+
+        //then
+        assertThat(adultPatientList.size()).isEqualTo(adultPatientsInBase);
+        assertThat(notAdultPatientList.size()).isEqualTo(notAdultPatientsInBase);
+    }
+
+    @Test
+    public void testOptimistLockException()
+    {
+        //given
+        EntityManager manager1 = factory.createEntityManager();
+        EntityManager manager2 = factory.createEntityManager();
+
+        AddressEntity address = new AddressEntity();
+        address.setPostalCode("12-456");
+        address.setCity("WROCLAW");
+        address.setAddressLine1("STREET1");
+        address.setAddressLine2("STREET2");
+
+        EntityTransaction transaction1 = manager1.getTransaction();
+        transaction1.begin();
+        manager1.persist(address);
+        transaction1.commit();
+        manager1.clear();
+
+        EntityTransaction transaction2 = manager2.getTransaction();
+        transaction2.begin();
+        AddressEntity addressTransaction2 = manager2.find(AddressEntity.class, address.getId());
+
+        transaction1.begin();
+        AddressEntity addressTransaction1 = manager1.find(AddressEntity.class, address.getId());
+        addressTransaction1.setCity("NEW CITY");
+        transaction1.commit();
+
+        //when
+        addressTransaction2.setCity("OLD CITY");
+
+        //then
+        try {
+            transaction2.commit();
+            fail("Expected OptimisticLockException, but it wasn't thrown.");
+        } catch (RollbackException e){
+            assertThat(e.getCause()).isInstanceOf(OptimisticLockException.class);
+        } finally {
+            manager1.close();
+            manager2.close();
+        }
+
     }
 
 }

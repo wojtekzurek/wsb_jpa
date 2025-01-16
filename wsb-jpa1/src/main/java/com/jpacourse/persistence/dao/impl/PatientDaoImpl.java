@@ -11,6 +11,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public class PatientDaoImpl extends AbstractDao<PatientEntity, Long> implements PatientDao
@@ -43,5 +44,34 @@ public class PatientDaoImpl extends AbstractDao<PatientEntity, Long> implements 
 
         patientEntity.getVisitEntityList().add(visit);
         entityManager.merge(patientEntity);
+    }
+
+    @Override
+    public List<PatientEntity> getPatientByLastName(String name)
+    {
+        return entityManager.createQuery("SELECT patient FROM PatientEntity patient " +
+                "WHERE patient.lastName LIKE :NAME", PatientEntity.class)
+                .setParameter("NAME", "%"+name+"%")
+                .getResultList();
+    }
+
+    @Override
+    public List<PatientEntity> getPatientByVisitsMoreThan(Long visitsCount)
+    {
+        return entityManager.createQuery("SELECT patient FROM PatientEntity patient " +
+                "JOIN patient.visitEntityList visit " +
+                "GROUP BY patient " +
+                "HAVING COUNT (visit) > :VISCOUNT", PatientEntity.class)
+                .setParameter("VISCOUNT", visitsCount)
+                .getResultList();
+    }
+
+    @Override
+    public List<PatientEntity> getPatientByIsAdult(Boolean isAdult)
+    {
+        return entityManager.createQuery("SELECT patient FROM PatientEntity patient " +
+                "WHERE patient.isAdult = :ISADULT", PatientEntity.class)
+                .setParameter("ISADULT", isAdult)
+                .getResultList();
     }
 }
